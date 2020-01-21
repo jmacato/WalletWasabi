@@ -131,76 +131,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private Global Global { get; }
-
-		public override void OnOpen()
-		{
-			base.OnOpen();
-
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
-			TargetPrivacy = Global.Config.GetTargetPrivacy();
-
-			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
-
-			UpdateRequiredBtcLabel(registrableRound);
-
-			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
-
-			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.OnDequeue)))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => UpdateStates())
-				.DisposeWith(Disposables);
-
-			ClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
-
-			if (mostAdvancedRound != default)
-			{
-				RoundId = mostAdvancedRound.State.RoundId;
-				Phase = mostAdvancedRound.State.Phase;
-				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
-				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
-				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
-			}
-			else
-			{
-				RoundId = -1;
-				Phase = RoundPhase.InputRegistration;
-				RoundTimesout = DateTimeOffset.UtcNow;
-				PeersRegistered = 0;
-				PeersNeeded = 100;
-			}
-
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-				{
-					this.RaisePropertyChanged(nameof(AmountQueued));
-					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-				}).DisposeWith(Disposables);
-
-			Observable.Interval(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
-					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
-				}).DisposeWith(Disposables);
-		}
-
-		public override bool OnClose()
-		{
-			CoinsList.OnClose();
-
-			Disposables?.Dispose();
-			Disposables = null;
-
-			return base.OnClose();
-		}
-
-		private async Task DoDequeueAsync(params SmartCoin[] coins)
-			=> await DoDequeueAsync(coins as IEnumerable<SmartCoin>);
-
 		private async Task DoDequeueAsync(IEnumerable<SmartCoin> coins)
 		{
 			IsDequeueBusy = true;
@@ -342,6 +272,61 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
+		public override void OnOpen()
+		{
+			base.OnOpen();
+
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+
+			TargetPrivacy = Global.Config.GetTargetPrivacy();
+
+			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
+
+			UpdateRequiredBtcLabel(registrableRound);
+
+			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
+
+			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
+				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.OnDequeue)))
+				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => UpdateStates())
+				.DisposeWith(Disposables);
+
+			ClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+
+			if (mostAdvancedRound != default)
+			{
+				RoundId = mostAdvancedRound.State.RoundId;
+				Phase = mostAdvancedRound.State.Phase;
+				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
+				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
+				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
+			}
+			else
+			{
+				RoundId = -1;
+				Phase = RoundPhase.InputRegistration;
+				RoundTimesout = DateTimeOffset.UtcNow;
+				PeersRegistered = 0;
+				PeersNeeded = 100;
+			}
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+				{
+					this.RaisePropertyChanged(nameof(AmountQueued));
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				}).DisposeWith(Disposables);
+
+			Observable.Interval(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
+					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
+				}).DisposeWith(Disposables);
+		}
+
 		public override void OnSelected()
 		{
 			Global.ChaumianClient.ActivateFrequentStatusProcessing();
@@ -350,6 +335,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override void OnDeselected()
 		{
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
+		}
+
+		public override bool OnClose()
+		{
+			CoinsList.OnClose();
+
+			Disposables?.Dispose();
+			Disposables = null;
+
+			return base.OnClose();
+		}
+
+		private Global Global { get; }
+
+		private async Task DoDequeueAsync(params SmartCoin[] coins)
+			=> await DoDequeueAsync(coins as IEnumerable<SmartCoin>);
+
+		private TargetPrivacy TargetPrivacy
+		{
+			get => _targetPrivacy;
+			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
@@ -447,18 +453,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonymitySet, value);
 		}
 
-		private TargetPrivacy TargetPrivacy
-		{
-			get => _targetPrivacy;
-			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
-		}
-
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
-
+		
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
-
 		public ReactiveCommand<Unit, Unit> DequeueCommand { get; }
-
 		public ReactiveCommand<Unit, TargetPrivacy> PrivacySomeCommand { get; }
 		public ReactiveCommand<Unit, TargetPrivacy> PrivacyFineCommand { get; }
 		public ReactiveCommand<Unit, TargetPrivacy> PrivacyStrongCommand { get; }
