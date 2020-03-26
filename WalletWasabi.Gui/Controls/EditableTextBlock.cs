@@ -58,9 +58,7 @@ namespace WalletWasabi.Gui.Controls
 
 					if (!InEditMode)
 					{
-#pragma warning disable CS0618 // Type or member is obsolete
-						if (e.ClickCount == 1 && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && IsFocused)
-#pragma warning restore CS0618 // Type or member is obsolete
+						if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && IsFocused)
 						{
 							EditClickTimer.Start();
 						}
@@ -190,9 +188,6 @@ namespace WalletWasabi.Gui.Controls
 				ReadMode = false;
 				InEditMode = true;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-				_root.MouseDevice.Capture(_textBox);
-#pragma warning restore CS0618 // Type or member is obsolete
 				_textBox.SelectionStart = 0;
 				_textBox.SelectionEnd = Text.Length;
 				_textBox.CaretIndex = Text.Length;
@@ -214,9 +209,6 @@ namespace WalletWasabi.Gui.Controls
 
 			InEditMode = false;
 			ReadMode = true;
-#pragma warning disable CS0618 // Type or member is obsolete
-			_root.MouseDevice.Capture(null);
-#pragma warning restore CS0618 // Type or member is obsolete
 		}
 	}
 }
