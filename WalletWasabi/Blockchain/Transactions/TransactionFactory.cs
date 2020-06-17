@@ -14,27 +14,37 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionFactory
 	{
+		/// <param name="network"></param>
+		/// <param name="keyManager"></param>
+		/// <param name="coins"></param>
+		/// <param name="password"></param>
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
+		/// <param name="bitcoinStore"></param>
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "",
+			bool allowUnconfirmed = false, BitcoinStore bitcoinStore = null)
 		{
 			Network = network;
 			KeyManager = keyManager;
 			Coins = coins;
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
+			Store = bitcoinStore;
 		}
+
 
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
 		public ICoinsView Coins { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
+		public BitcoinStore Store { get; }
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -157,7 +167,8 @@ namespace WalletWasabi.Blockchain.Transactions
 			var psbt = builder.BuildPSBT(false);
 
 			var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.OutPoint == txin.PrevOut)).ToArray();
-
+			
+			
 			var realToSend = payments.Requests
 				.Select(t =>
 					(label: t.Label,
@@ -214,7 +225,20 @@ namespace WalletWasabi.Blockchain.Transactions
 			// Build the transaction
 			Logger.LogInfo("Signing transaction...");
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
-
+ 
+			foreach (var input in spentCoins)
+			{
+				var coinInputTxID = input.TransactionId;
+				if(Store.TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
+				{
+					var psbtInput = psbt.Inputs.FirstOrDefault(x => x.PrevOut.Hash == coinInputTxID);
+					if(psbtInput != null)
+					{
+						psbtInput.NonWitnessUtxo = txn.Transaction;
+					}
+				}
+			}
+			
 			Transaction tx = null;
 			if (KeyManager.IsWatchOnly)
 			{
