@@ -1,0 +1,23 @@
+<Application xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:WasabiNextGen"
+    xmlns:views="clr-namespace:WasabiNextGen.Views" x:Class="WasabiNextGen.App">
+    
+    <Application.DataTemplates>
+        <views:ViewLocator/>
+    </Application.DataTemplates>
+ 
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://WasabiNextGen/Assets/Resources/GlobalResources.Dark.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.Styles>
+        <StyleInclude Source="avares://Avalonia.Themes.Default/Accents/BaseDark.xaml" />
+        <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentDark.xaml" />
+        <StyleInclude Source="avares://WasabiNextGen/Assets/Styles/GlobalStyles.xaml"/>
+    </Application.Styles>
+</Application>
