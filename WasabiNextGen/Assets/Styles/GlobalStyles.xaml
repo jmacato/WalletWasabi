@@ -10,7 +10,7 @@
         <Setter Property="Width" Value="800" />
         <Setter Property="MinHeight" Value="480" />
         <Setter Property="Height" Value="480" />
-        <Setter Property="Icon" Value="/Assets/Icons/WasabiLogo.ico" />
+        <Setter Property="Icon" Value="avares://WasabiNextGen/Assets/Icons/WasabiLogo.ico" />
         <Setter Property="Title" Value="Wasabi Wallet" />
     </Style>
 
