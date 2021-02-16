@@ -226,6 +226,12 @@ namespace WalletWasabi.Fluent.Controls
 			base.OnTextInput(e);
 		}
 
+		protected override void OnLostFocus(RoutedEventArgs e)
+		{
+			base.OnLostFocus(e);
+			UpdateDisplay(true);
+		}
+
 		// Pre-composes the TextInputEventArgs to see the potential Text that is to
 		// be committed to the TextPresenter in this control.
 
@@ -260,7 +266,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private static string FormatBtcValue(NumberFormatInfo formatInfo, decimal value)
 		{
-			return string.Format(formatInfo, "{0:### ### ### ##0.########}", value).Trim();
+			return string.Format(formatInfo, "{0:### ### ### ##0.#### ####}", value).Trim();
 		}
 
 		private static string FormatFiatValue(NumberFormatInfo formatInfo, decimal value)
