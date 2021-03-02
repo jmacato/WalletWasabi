@@ -13,6 +13,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
+
     <SplitView
       IsEnabled="{Binding IsMainContentEnabled}"
       CompactPaneLength="{Binding NavBar.CurrentCompactPaneLength}"
