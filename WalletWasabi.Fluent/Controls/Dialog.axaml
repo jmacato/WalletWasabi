@@ -13,7 +13,10 @@
                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
             <Border Name="PART_Border"
                     Background="{DynamicResource RegionColor}"
-                    MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}">
+                    MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    >
               <ContentPresenter Name="PART_ContentPresenter" Margin="16 28 16 16"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -21,8 +24,8 @@
                                 ContentTemplate="{TemplateBinding ContentTemplate}"
                                 Content="{TemplateBinding Content}"
                                 Padding="{TemplateBinding Padding}"
-                                VerticalContentAlignment="Stretch"
-                                HorizontalContentAlignment="Stretch"/>
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Center"/>
             </Border>
           </Panel>
         </Panel>
