@@ -1,6 +1,9 @@
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -15,11 +18,14 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 	[NavigationMetaData(Title = "Login")]
 	public partial class LoginViewModel : RoutableViewModel
 	{
-		[AutoNotify] private string _password;
-		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _errorMessage;
+		[AutoNotify] private bool _isPasswordNeeded;
+		[AutoNotify] private ObservableCollection<string> _labels;
+		[AutoNotify] private string _password;
 
-		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
+
+		public LoginViewModel(WalletManagerViewModel walletManagerViewModel,
+			ClosedWalletViewModel closedWalletViewModel)
 		{
 			var wallet = closedWalletViewModel.Wallet;
 			IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
@@ -28,11 +34,17 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			_errorMessage = "";
 			WalletType = WalletHelpers.GetType(closedWalletViewModel.Wallet.KeyManager);
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(walletManagerViewModel, closedWalletViewModel, wallet));
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+				await OnNextAsync(walletManagerViewModel, closedWalletViewModel, wallet));
 
 			OkCommand = ReactiveCommand.Create(OnOk);
 
 			ForgotPasswordCommand = ReactiveCommand.Create(() => OnForgotPassword(wallet));
+
+			Labels = new ObservableCollection<string>();
+
+			var s = "7, La, Laaaaaaaaaaaaaaaaaaaaaaaabel, Labe, Label, Self, Test".Split(",").Select(x => x.Trim());
+			Labels.AddRange(s);
 
 			EnableAutoBusyOn(NextCommand);
 		}
@@ -45,7 +57,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		public ICommand ForgotPasswordCommand { get; }
 
-		private async Task OnNextAsync(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
+		private async Task OnNextAsync(WalletManagerViewModel walletManagerViewModel,
+			ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 		{
 			string? compatibilityPasswordUsed = null;
 
@@ -59,7 +72,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			if (compatibilityPasswordUsed is { })
 			{
-				await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
+				await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage,
+					"Compatibility password was used");
 			}
 
 			var legalResult = await ShowLegalAsync();
@@ -86,10 +100,12 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 		}
 
-		private void LoginWallet(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
+		private void LoginWallet(WalletManagerViewModel walletManagerViewModel,
+			ClosedWalletViewModel closedWalletViewModel)
 		{
 			closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-			RxApp.MainThreadScheduler.Schedule(async () => await walletManagerViewModel.LoadWalletAsync(closedWalletViewModel));
+			RxApp.MainThreadScheduler.Schedule(async () =>
+				await walletManagerViewModel.LoadWalletAsync(closedWalletViewModel));
 			Navigate().To(closedWalletViewModel, NavigationMode.Clear);
 		}
 
